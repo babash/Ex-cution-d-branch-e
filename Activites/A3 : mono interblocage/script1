@@ -1,0 +1,8 @@
+pid = 0
+prio = 0
+prendre(bleu)
+dessiner(bleu,[17])
+prendre(vert)
+dessiner(vert,[35,37,43,51,52,53])
+poser(vert)
+poser(bleu)
