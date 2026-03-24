@@ -1,0 +1,8 @@
+pid = 2
+prio = 0
+prendre(rouge)
+dessiner(rouge,[20,21,28,29,31,32,33,34,39,40,50,58])
+prendre(noir)
+dessiner(noir,[11])
+poser(rouge)
+poser(noir)
