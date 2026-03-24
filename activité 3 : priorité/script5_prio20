@@ -1,6 +1,0 @@
-pid = 5
-priorité = 20
-
-prendre(noir)
-dessiner(noir,[54,53,52,50,42,34,35,27])
-poser(noir)

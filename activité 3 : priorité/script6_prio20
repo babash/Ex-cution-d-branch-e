@@ -1,6 +1,0 @@
-pid = 6
-priorité = 20
-
-prendre(rouge)
-dessiner(rouge,[21,22,28,31,36,39])
-poser(rouge)
