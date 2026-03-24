@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiches Processus &#8212; Activit&#233; D&#233;branch&#233;e SE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           RESET & BASE
+        ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #d8d8d8;
+            font-family: 'IBM Plex Sans', Arial, sans-serif;
+            color: #111;
+            padding: 20px;
+        }
+
+        /* ============================================================
+           FORMAT A4
+        ============================================================ */
+        .fiche {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            margin: 0 auto 28px auto;
+            padding: 14mm 16mm 12mm 16mm;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 24px rgba(0,0,0,.20);
+            position: relative;
+        }
+
+        /* ============================================================
+           EN-TETE
+        ============================================================ */
+        .fiche-header {
+            display: flex;
+            align-items: stretch;
+            border: 3px solid #111;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .pid-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 22px;
+            background: #111;
+            color: #fff;
+            min-width: 90px;
+            gap: 2px;
+        }
+        .pid-label {
+            font-size: 8.5pt;
+            letter-spacing: 3px;
+            font-weight: 700;
+            opacity: .65;
+            text-transform: uppercase;
+        }
+        .pid-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 30pt;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 12px 22px;
+            flex: 1;
+            border-left: 3px solid #111;
+            border-right: 3px solid #111;
+        }
+        .activity-label {
+            font-size: 14pt;
+            font-weight: 700;
+            letter-spacing: .5px;
+            color: #111;
+        }
+        .activity-sub {
+            font-size: 8.5pt;
+            color: #666;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .prio-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 22px;
+            min-width: 100px;
+            gap: 1px;
+        }
+        .prio-label {
+            font-size: 7pt;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .prio-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 28pt;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .prio-text {
+            font-size: 7.5pt;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================================
+           BANDEAU REGLES
+        ============================================================ */
+        .rules-strip {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #f4f4f4;
+            border: 1.5px solid #ccc;
+            border-radius: 5px;
+            padding: 7px 14px;
+            font-size: 8pt;
+            color: #333;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .rules-strip span {
+            padding: 0 12px;
+            border-right: 1px solid #bbb;
+        }
+        .rules-strip span:first-child { padding-left: 0; }
+        .rules-strip span:last-child  { border-right: none; }
+        .rule-quantum {
+            margin-left: auto;
+            background: #111;
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 20px;
+            border-right: none !important;
+            white-space: nowrap;
+        }
+
+        /* ============================================================
+           TABLE D'INSTRUCTIONS
+        ============================================================ */
+        .inst-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+        }
+        .inst-table thead tr {
+            background: #111;
+            color: #fff;
+        }
+        .inst-table th {
+            padding: 8px 10px;
+            font-size: 8.5pt;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .inst-table tbody tr {
+            border-bottom: 1.5px solid #e4e4e4;
+        }
+        .inst-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        .inst-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        .inst-table tbody tr:hover {
+            background: #f0f4ff;
+        }
+
+        /* Colonnes */
+        .col-num {
+            width: 36px;
+            text-align: center;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9pt;
+            color: #999;
+            padding: 11px 6px;
+        }
+        .col-check {
+            width: 48px;
+            text-align: center;
+            padding: 11px 4px;
+        }
+        .col-inst {
+            padding: 11px 14px;
+            font-size: 11.5pt;
+            line-height: 1.5;
+        }
+
+        /* Case a cocher dessinee en CSS pur */
+        .checkbox {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 2.5px solid #444;
+            border-radius: 4px;
+            background: #fff;
+            vertical-align: middle;
+        }
+
+        /* Rendu des instructions */
+        .verb {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            font-size: 10.5pt;
+            color: #111;
+        }
+        .verb-generic {
+            font-family: 'IBM Plex Mono', monospace;
+            color: #555;
+        }
+        .couleur {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            font-size: 10pt;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+        .case-badge {
+            display: inline-block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8.5pt;
+            font-weight: 700;
+            border: 1.5px solid;
+            border-radius: 3px;
+            padding: 1px 5px;
+            margin: 1px 2px;
+        }
+        .inst-icon {
+            display: inline-block;
+            width: 22px;
+            text-align: center;
+            font-size: 11pt;
+            margin-right: 6px;
+            opacity: .55;
+        }
+
+        /* ============================================================
+           PIED DE PAGE
+        ============================================================ */
+        .fiche-footer {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 2px dashed #d0d0d0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+        }
+        .footer-hint {
+            font-size: 8pt;
+            color: #555;
+            line-height: 1.6;
+            max-width: 75%;
+        }
+        .footer-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 7.5pt;
+            color: #bbb;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* ============================================================
+           IMPRESSION
+        ============================================================ */
+        @media print {
+            body { background: white; padding: 0; }
+            .fiche {
+                box-shadow: none;
+                margin: 0;
+                page-break-after: always;
+            }
+            .fiche:last-child { page-break-after: auto; }
+        }
+
+        .page-break       { page-break-after: always; }
+        .page-break:last-child { page-break-after: auto; }
+    </style>
+</head>
+<body>
+
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">101</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#ffebee;border-color:#d32f2f;">
+                <span class="prio-label" style="color:#d32f2f;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#d32f2f;">1</span>
+                <span class="prio-text"  style="color:#d32f2f;">HAUTE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>, [<span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">A1</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">A2</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">A3</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">B1</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>, [<span class="case-badge" style="border-color:#1565c0;color:#1565c0;">B2</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">B3</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">C2</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;101 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">102</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#fff3e0;border-color:#f57c00;">
+                <span class="prio-label" style="color:#f57c00;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#f57c00;">2</span>
+                <span class="prio-text"  style="color:#f57c00;">MOYENNE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>, [<span class="case-badge" style="border-color:#1565c0;color:#1565c0;">A4</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">A5</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">B4</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>, [<span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">C1</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">C3</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">D1</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">7</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">8</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>, [<span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">D2</span> <span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">D3</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">9</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;102 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">103</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#e8f5e9;border-color:#388e3c;">
+                <span class="prio-label" style="color:#388e3c;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#388e3c;">3</span>
+                <span class="prio-text"  style="color:#388e3c;">BASSE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>, [<span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">E1</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">E2</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>, [<span class="case-badge" style="border-color:#212121;color:#212121;">E3</span> <span class="case-badge" style="border-color:#212121;color:#212121;">F1</span> <span class="case-badge" style="border-color:#212121;color:#212121;">F2</span> <span class="case-badge" style="border-color:#212121;color:#212121;">F3</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;103 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">104</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#fff3e0;border-color:#f57c00;">
+                <span class="prio-label" style="color:#f57c00;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#f57c00;">2</span>
+                <span class="prio-text"  style="color:#f57c00;">MOYENNE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>, [<span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">G1</span> <span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">G2</span> <span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">G3</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>, [<span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">H1</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">H2</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">7</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">8</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>, [<span class="case-badge" style="border-color:#1565c0;color:#1565c0;">H3</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">H4</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">I1</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">9</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">10</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">11</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>, [<span class="case-badge" style="border-color:#212121;color:#212121;">I2</span> <span class="case-badge" style="border-color:#212121;color:#212121;">I3</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">12</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;104 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">105</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#ffebee;border-color:#d32f2f;">
+                <span class="prio-label" style="color:#d32f2f;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#d32f2f;">1</span>
+                <span class="prio-text"  style="color:#d32f2f;">HAUTE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>, [<span class="case-badge" style="border-color:#1565c0;color:#1565c0;">J1</span> <span class="case-badge" style="border-color:#1565c0;color:#1565c0;">J2</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>, [<span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">J3</span> <span class="case-badge" style="border-color:#d32f2f;color:#d32f2f;">K1</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#1565c0;background:#e3f2fd;">BLEU</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#d32f2f;background:#ffebee;">ROUGE</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;105 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+    <div class="fiche page-break">
+
+        <header class="fiche-header">
+            <div class="pid-block">
+                <span class="pid-label">PID</span>
+                <span class="pid-value">106</span>
+            </div>
+            <div class="title-block">
+                <span class="activity-label">Activit&#233; D&#233;branch&#233;e</span>
+                <span class="activity-sub">Syst&#232;me d&#8217;Exploitation</span>
+            </div>
+            <div class="prio-block"
+                 style="background:#e8f5e9;border-color:#388e3c;">
+                <span class="prio-label" style="color:#388e3c;">PRIORIT&#201;</span>
+                <span class="prio-num"   style="color:#388e3c;">3</span>
+                <span class="prio-text"  style="color:#388e3c;">BASSE</span>
+            </div>
+        </header>
+
+        <div class="rules-strip">
+            <span>&#x2B07; <strong>PRENDRE</strong> le feutre</span>
+            <span>&#x270F; <strong>DESSINER</strong> les cases</span>
+            <span>&#x2B06; <strong>POSER</strong> le feutre</span>
+            <span class="rule-quantum">Quantum&nbsp;: <strong>1&nbsp;ligne&nbsp;/ tour</strong></span>
+        </div>
+
+        <table class="inst-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-check">&#x2713;</th>
+                    <th class="col-inst">Instruction</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="col-num">1</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">2</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>, [<span class="case-badge" style="border-color:#212121;color:#212121;">L1</span> <span class="case-badge" style="border-color:#212121;color:#212121;">L2</span> <span class="case-badge" style="border-color:#212121;color:#212121;">L3</span> <span class="case-badge" style="border-color:#212121;color:#212121;">M1</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">3</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#212121;background:#f5f5f5;">NOIR</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">4</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B07;</span><span class="verb">PRENDRE</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+        <tr>
+            <td class="col-num">5</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x270F;</span><span class="verb">DESSINER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>, [<span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">M2</span> <span class="case-badge" style="border-color:#2e7d32;color:#2e7d32;">M3</span>])</td>
+        </tr>
+        <tr>
+            <td class="col-num">6</td>
+            <td class="col-check"><span class="checkbox"></span></td>
+            <td class="col-inst"><span class="inst-icon">&#x2B06;</span><span class="verb">POSER</span>(<span class="couleur" style="color:#2e7d32;background:#e8f5e9;">VERT</span>)</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <footer class="fiche-footer">
+            <div class="footer-hint">
+                &#x2714; Coche la case <strong>uniquement</strong> si l&#8217;action est
+                <strong>termin&#233;e</strong>.&nbsp;
+                Si <em>PRENDRE</em> &#233;choue &#8594; va en file <strong>BLOQU&#201;</strong> (droite).
+            </div>
+            <div class="footer-meta">PID&nbsp;106 &mdash; 24/03/2026</div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

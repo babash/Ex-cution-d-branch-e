@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur d'Ordonnancement — Chronogramme</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1f2937;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --ready: #f0b429;
+    --running: #3fb950;
+    --blocked: #f85149;
+    --done: #388bfd;
+    --idle: #30363d;
+    --accent: #58a6ff;
+    --purple: #bc8cff;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  header span {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── LEFT PANEL ── */
+  .panel {
+    width: 380px;
+    min-width: 340px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .panel-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+
+  /* Policy selector */
+  .policy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .policy-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1.5;
+  }
+
+  .policy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .policy-btn.active {
+    background: rgba(88,166,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .policy-btn .badge {
+    display: block;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: var(--sans);
+  }
+
+  /* Cores */
+  .cores-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .cores-row label { font-size: 0.8rem; color: var(--muted); }
+
+  .cores-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+
+  .cores-val {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* Process cards */
+  .process-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .proc-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+
+  .proc-card:hover { border-color: var(--accent); }
+
+  .proc-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .pid-badge {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    background: rgba(88,166,255,0.15);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(88,166,255,0.3);
+    cursor: text;
+    outline: none;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  .pid-badge:focus {
+    background: rgba(88,166,255,0.25);
+    border-color: var(--accent);
+  }
+
+  .prio-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+  }
+
+  .prio-wrap label { font-size: 0.72rem; color: var(--muted); }
+
+  .prio-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  .instr-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 10px;
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.7;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  .instr-textarea:focus { border-color: var(--accent); }
+
+  .proc-card .del-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .proc-card .del-btn:hover { color: var(--blocked); background: rgba(248,81,73,0.1); }
+
+  .add-proc-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+
+  .add-proc-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Presets */
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .preset-btn {
+    font-size: 0.72rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover { border-color: var(--purple); color: var(--purple); }
+
+  /* Run button */
+  .run-btn {
+    margin: 16px;
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    padding: 13px;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .run-btn:hover { background: #79c0ff; transform: translateY(-1px); }
+  .run-btn:active { transform: translateY(0); }
+
+  /* ── RIGHT PANEL ── */
+  .output {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 12px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 3rem; opacity: 0.3; }
+  .empty-state p { font-size: 0.85rem; font-family: var(--mono); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  /* Gantt */
+  .gantt-wrapper {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .gantt-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .gantt-table {
+    border-collapse: collapse;
+    min-width: 100%;
+  }
+
+  .gantt-table th {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    padding: 4px 2px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    min-width: 28px;
+    font-weight: 400;
+  }
+
+  .gantt-table .row-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    padding: 6px 14px 6px 0;
+    white-space: nowrap;
+    text-align: right;
+    vertical-align: middle;
+  }
+
+  .gantt-table .row-label span {
+    font-size: 0.6rem;
+    color: var(--muted);
+    display: block;
+  }
+
+  .gantt-cell {
+    min-width: 28px;
+    height: 32px;
+    border-radius: 2px;
+    margin: 1px;
+    display: inline-block;
+    position: relative;
+    cursor: default;
+    transition: opacity 0.15s;
+  }
+
+  .gantt-cell:hover { opacity: 0.8; }
+
+  td { padding: 1px 1px; vertical-align: middle; }
+
+  .cell-running  { background: var(--running);  }
+  .cell-ready    { background: rgba(240,180,41,0.35); border: 1px solid var(--ready); }
+  .cell-blocked  { background: rgba(248,81,73,0.35);  border: 1px solid var(--blocked); }
+  .cell-done     { background: rgba(56,139,253,0.25); border: 1px solid var(--done); }
+  .cell-idle     { background: var(--idle); }
+
+  /* Resource timeline */
+  .res-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .stat-card .label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .pid-tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .stat-card .val {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .stat-card .val small { font-size: 0.65rem; color: var(--muted); }
+
+  /* Tooltip */
+  [data-tip] { cursor: help; }
+
+  .tooltip-box {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text);
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+
+  /* Deadlock warning */
+  .deadlock-warn {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid var(--blocked);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--blocked);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .instr-hint {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 5px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚙ Chronogramme Ordonnanceur</h1>
+  <span>NSI · Terminale</span>
+  <span>Simulation Quantum=1</span>
+</header>
+
+<div class="main">
+
+  <!-- ── LEFT CONFIG PANEL ── -->
+  <div class="panel">
+
+    <!-- Presets -->
+    <div class="panel-section">
+      <div class="section-title">Scénarios Prédéfinis</div>
+      <div class="preset-row">
+        <button class="preset-btn" onclick="loadPreset('rr')">⏱ Round-Robin</button>
+        <button class="preset-btn" onclick="loadPreset('prio')">⭐ Priorités</button>
+        <button class="preset-btn" onclick="loadPreset('deadlock')">🔒 Interblocage</button>
+        <button class="preset-btn" onclick="loadPreset('multi')">⚡ Multicœur</button>
+      </div>
+    </div>
+
+    <!-- Policy -->
+    <div class="panel-section">
+      <div class="section-title">Politique d'Ordonnancement</div>
+      <div class="policy-grid">
+        <button class="policy-btn active" data-policy="rr" onclick="setPolicy('rr',this)">
+          RR
+          <span class="badge">Round-Robin (FIFO)</span>
+        </button>
+        <button class="policy-btn" data-policy="priority" onclick="setPolicy('priority',this)">
+          PRIO
+          <span class="badge">Priorité Statique</span>
+        </button>
+        <button class="policy-btn" data-policy="sjf" onclick="setPolicy('sjf',this)">
+          SJF
+          <span class="badge">Plus Court d'Abord</span>
+        </button>
+        <button class="policy-btn" data-policy="fcfs" onclick="setPolicy('fcfs',this)">
+          FCFS
+          <span class="badge">Premier Arrivé</span>
+        </button>
+      </div>
+      <div class="cores-row">
+        <label>Cœurs CPU :</label>
+        <input type="range" id="coresRange" min="1" max="4" value="1" oninput="document.getElementById('coresVal').textContent=this.value">
+        <div class="cores-val" id="coresVal">1</div>
+      </div>
+    </div>
+
+    <!-- Processes -->
+    <div class="panel-section" style="flex:1">
+      <div class="section-title">Processus</div>
+      <div class="process-list" id="processList"></div>
+      <button class="add-proc-btn" onclick="addProcess()">＋ Ajouter un processus</button>
+      <div class="instr-hint">
+        Instructions disponibles :<br>
+        <code>PRENDRE(ROUGE)</code> · <code>POSER(ROUGE)</code><br>
+        <code>DESSINER(ROUGE,[A1,B2])</code> · <code>CALCULER</code>
+      </div>
+    </div>
+
+    <button class="run-btn" onclick="runSimulation()">▶ SIMULER</button>
+  </div>
+
+  <!-- ── RIGHT OUTPUT ── -->
+  <div class="output" id="output">
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <p>Choisir un scénario et appuyer sur SIMULER</p>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip-box" id="tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let currentPolicy = 'rr';
+let processDefs = []; // { pid, priority, rawInstructions }
+let pidCounter = 100;
+
+// ═══════════════════════════════════════
+//  POLICY
+// ═══════════════════════════════════════
+function setPolicy(p, btn) {
+  currentPolicy = p;
+  document.querySelectorAll('.policy-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  PROCESS MANAGEMENT
+// ═══════════════════════════════════════
+function addProcess(pid, priority, instructions) {
+  pidCounter++;
+  const id = pid || pidCounter;
+  const prio = priority || 2;
+  const instrs = instructions || '';
+  processDefs.push({ id: Date.now(), pid: String(id), priority: prio, instructions: instrs });
+  renderProcessList();
+}
+
+function removeProcess(id) {
+  processDefs = processDefs.filter(p => p.id !== id);
+  renderProcessList();
+}
+
+function renderProcessList() {
+  const list = document.getElementById('processList');
+  list.innerHTML = '';
+  processDefs.forEach(proc => {
+    const card = document.createElement('div');
+    card.className = 'proc-card';
+    card.innerHTML = `
+      <button class="del-btn" onclick="removeProcess(${proc.id})" title="Supprimer">✕</button>
+      <div class="proc-header">
+        <div class="pid-badge" contenteditable="true" spellcheck="false"
+             oninput="updateProc(${proc.id},'pid',this.textContent.trim())">${proc.pid}</div>
+        <div class="prio-wrap">
+          <label>Priorité</label>
+          <select class="prio-select" onchange="updateProc(${proc.id},'priority',+this.value)">
+            ${[1,2,3].map(v=>`<option value="${v}" ${v==proc.priority?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <textarea class="instr-textarea" placeholder="PRENDRE(ROUGE)&#10;DESSINER(ROUGE,[A1,B2])&#10;POSER(ROUGE)"
+                oninput="updateProc(${proc.id},'instructions',this.value)">${proc.instructions}</textarea>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function updateProc(id, key, val) {
+  const p = processDefs.find(p => p.id === id);
+  if (p) p[key] = val;
+}
+
+// ═══════════════════════════════════════
+//  PRESETS
+// ═══════════════════════════════════════
+function loadPreset(name) {
+  processDefs = [];
+  pidCounter = 100;
+
+  const presets = {
+    rr: {
+      policy: 'rr', cores: 1,
+      procs: [
+        { pid:'P1', prio:2, instr:'PRENDRE(ROUGE)\nDESSINER(ROUGE,[A1,A2,A3])\nPOSER(ROUGE)' },
+        { pid:'P2', prio:2, instr:'PRENDRE(BLEU)\nDESSINER(BLEU,[B1,B2])\nPOSER(BLEU)' },
+        { pid:'P3', prio:2, instr:'CALCULER\nDESSINER(VERT,[C1,C2,C3,C4])\nCALCULER' },
+      ]
+    },
+    prio: {
+      policy: 'priority', cores: 1,
+      procs: [
+        { pid:'P1', prio:1, instr:'DESSINER(ROUGE,[A1,A2,A3])\nCALCULER\nDESSINER(ROUGE,[A4,A5])' },
+        { pid:'P2', prio:1, instr:'CALCULER\nDESSINER(BLEU,[B1,B2,B3])' },
+        { pid:'P3', prio:3, instr:'DESSINER(VERT,[C1])\nCALCULER\nDESSINER(VERT,[C2])\nCALCULER' },
+      ]
+    },
+    deadlock: {
+      policy: 'rr', cores: 1,
+      procs: [
+        { pid:'A',  prio:2, instr:'PRENDRE(ROUGE)\nPRENDRE(BLEU)\nDESSINER(ROUGE,[X1])\nPOSER(BLEU)\nPOSER(ROUGE)' },
+        { pid:'B',  prio:2, instr:'PRENDRE(BLEU)\nPRENDRE(ROUGE)\nDESSINER(BLEU,[Y1])\nPOSER(ROUGE)\nPOSER(BLEU)' },
+      ]
+    },
+    multi: {
+      policy: 'rr', cores: 3,
+      procs: [
+        { pid:'P1', prio:2, instr:'CALCULER\nDESSINER(ROUGE,[A1,A2])\nCALCULER' },
+        { pid:'P2', prio:2, instr:'PRENDRE(VERT)\nDESSINER(VERT,[B1,B2,B3])\nPOSER(VERT)' },
+        { pid:'P3', prio:2, instr:'PRENDRE(VERT)\nDESSINER(VERT,[C1])\nPOSER(VERT)' },
+        { pid:'P4', prio:2, instr:'CALCULER\nCALCULER\nDESSINER(NOIR,[D1,D2])' },
+      ]
+    }
+  };
+
+  const preset = presets[name];
+  document.getElementById('coresRange').value = preset.cores;
+  document.getElementById('coresVal').textContent = preset.cores;
+  setPolicy(preset.policy, document.querySelector(`[data-policy="${preset.policy}"]`));
+
+  preset.procs.forEach(p => {
+    processDefs.push({ id: Date.now() + Math.random(), pid: p.pid, priority: p.prio, instructions: p.instr });
+  });
+  renderProcessList();
+}
+
+// ═══════════════════════════════════════
+//  INSTRUCTION PARSER
+// ═══════════════════════════════════════
+function parseInstructions(raw) {
+  return raw.trim().split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
+    .map(l => {
+      const prendre = l.match(/^PRENDRE\((\w+)\)/i);
+      if (prendre) return { type: 'PRENDRE', res: prendre[1].toUpperCase() };
+      const poser = l.match(/^POSER\((\w+)\)/i);
+      if (poser) return { type: 'POSER', res: poser[1].toUpperCase() };
+      const dessiner = l.match(/^DESSINER\((\w+),\s*\[([^\]]*)\]\)/i);
+      if (dessiner) return { type: 'DESSINER', color: dessiner[1].toUpperCase(), cases: dessiner[2] };
+      return { type: 'CALCULER', raw: l };
+    });
+}
+
+// ═══════════════════════════════════════
+//  SIMULATION ENGINE
+// ═══════════════════════════════════════
+function simulate(defs, policy, cores) {
+  const MAX_TICKS = 60;
+
+  // Build process objects
+  let procs = defs.map(d => ({
+    pid: d.pid,
+    priority: d.priority,
+    instructions: parseInstructions(d.instructions),
+    pc: 0,
+    state: 'READY',   // READY | RUNNING | BLOCKED | DONE
+    waitingFor: null,
+    arrivalOrder: defs.indexOf(d),
+    firstRun: -1,
+    finishTick: -1,
+    timeline: [],     // state per tick
+    instrLog: [],     // instruction label per tick
+  }));
+
+  let resources = {};  // res -> pid | null
+  let rrQueue = [...procs]; // for round-robin ordering
+  let deadlockTick = -1;
+
+  for (let t = 0; t < MAX_TICKS; t++) {
+    // ── 1. Unblock processes whose resource is now free ──
+    procs.filter(p => p.state === 'BLOCKED').forEach(p => {
+      if (!resources[p.waitingFor]) {
+        p.state = 'READY';
+        // insert back in RR queue if not there
+        if (!rrQueue.includes(p)) rrQueue.push(p);
+      }
+    });
+
+    // ── 2. Pick elected processes ──
+    const ready = procs.filter(p => p.state === 'READY');
+
+    // Check termination
+    const alive = procs.filter(p => p.state !== 'DONE');
+    if (alive.length === 0) break;
+
+    // Deadlock detection: all alive are blocked
+    if (alive.every(p => p.state === 'BLOCKED')) {
+      if (deadlockTick < 0) deadlockTick = t;
+      procs.forEach(p => {
+        p.timeline.push(p.state);
+        p.instrLog.push('');
+      });
+      if (t - deadlockTick > 4) break; // stop after showing deadlock
+      continue;
+    }
+
+    // Select up to `cores` processes
+    let elected = [];
+    if (policy === 'rr') {
+      // Pull from head of rrQueue (only READY ones)
+      let candidates = rrQueue.filter(p => p.state === 'READY');
+      elected = candidates.slice(0, cores);
+    } else if (policy === 'priority') {
+      const sorted = ready.slice().sort((a, b) => a.priority - b.priority || a.arrivalOrder - b.arrivalOrder);
+      elected = sorted.slice(0, cores);
+    } else if (policy === 'sjf') {
+      const sorted = ready.slice().sort((a, b) =>
+        (a.instructions.length - a.pc) - (b.instructions.length - b.pc) || a.arrivalOrder - b.arrivalOrder);
+      elected = sorted.slice(0, cores);
+    } else { // FCFS
+      const sorted = ready.slice().sort((a, b) => a.arrivalOrder - b.arrivalOrder);
+      elected = sorted.slice(0, cores);
+    }
+
+    // ── 3. Execute one instruction per elected process ──
+    elected.forEach(proc => {
+      if (proc.firstRun < 0) proc.firstRun = t;
+      proc.state = 'RUNNING';
+      const instr = proc.instructions[proc.pc];
+      let label = instr.type;
+
+      if (instr.type === 'PRENDRE') {
+        label = `PRENDRE(${instr.res})`;
+        if (!resources[instr.res]) {
+          resources[instr.res] = proc.pid;
+          proc.pc++;
+          proc.state = 'READY';
+        } else {
+          proc.state = 'BLOCKED';
+          proc.waitingFor = instr.res;
+          rrQueue = rrQueue.filter(p => p !== proc);
+          label = `⏸ PRENDRE(${instr.res})`;
+        }
+      } else if (instr.type === 'POSER') {
+        label = `POSER(${instr.res})`;
+        if (resources[instr.res] === proc.pid) {
+          resources[instr.res] = null;
+        }
+        proc.pc++;
+        proc.state = 'READY';
+      } else if (instr.type === 'DESSINER') {
+        label = `DESSINER(${instr.color})`;
+        proc.pc++;
+        proc.state = 'READY';
+      } else {
+        label = instr.type;
+        proc.pc++;
+        proc.state = 'READY';
+      }
+
+      if (proc.pc >= proc.instructions.length) {
+        proc.state = 'DONE';
+        proc.finishTick = t + 1;
+        rrQueue = rrQueue.filter(p => p !== proc);
+      }
+
+      proc.instrLog.push(label);
+    });
+
+    // ── 4. Rotate RR queue ──
+    if (policy === 'rr') {
+      elected.filter(p => p.state === 'READY').forEach(p => {
+        rrQueue = rrQueue.filter(q => q !== p);
+        rrQueue.push(p);
+      });
+    }
+
+    // ── 5. Record timeline for all ──
+    procs.forEach(p => {
+      if (!elected.includes(p)) {
+        p.timeline.push(p.state);
+        if (p.instrLog.length < p.timeline.length) p.instrLog.push('');
+      } else {
+        p.timeline.push(p.state === 'BLOCKED' ? 'BLOCKED' : 'RUNNING');
+      }
+    });
+  }
+
+  return { procs, resources, deadlockTick };
+}
+
+// ═══════════════════════════════════════
+//  RENDER OUTPUT
+// ═══════════════════════════════════════
+function runSimulation() {
+  if (processDefs.length === 0) {
+    alert('Ajoutez au moins un processus !');
+    return;
+  }
+
+  const cores = parseInt(document.getElementById('coresRange').value);
+  const { procs, deadlockTick } = simulate(processDefs, currentPolicy, cores);
+  const ticks = procs[0].timeline.length;
+
+  const out = document.getElementById('output');
+  out.innerHTML = '';
+
+  // ── Legend ──
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  const legendItems = [
+    { cls: 'cell-running', label: 'ÉLU (Running)' },
+    { cls: 'cell-ready',   label: 'PRÊT (Ready)' },
+    { cls: 'cell-blocked', label: 'BLOQUÉ' },
+    { cls: 'cell-done',    label: 'TERMINÉ' },
+    { cls: 'cell-idle',    label: 'Idle' },
+  ];
+  legendItems.forEach(li => {
+    legend.innerHTML += `<div class="legend-item">
+      <div class="legend-dot ${li.cls}"></div>${li.label}</div>`;
+  });
+  out.appendChild(legend);
+
+  // ── Deadlock warning ──
+  if (deadlockTick >= 0) {
+    const w = document.createElement('div');
+    w.className = 'deadlock-warn';
+    w.innerHTML = `⚠ <strong>INTERBLOCAGE détecté</strong> au tick t=${deadlockTick} — 
+      Toutes les ressources sont en attente circulaire. Aucun processus ne peut progresser.`;
+    out.appendChild(w);
+  }
+
+  // ── Gantt Chart ──
+  const ganttWrap = document.createElement('div');
+  ganttWrap.className = 'gantt-wrapper';
+  ganttWrap.innerHTML = `<div class="gantt-title">Chronogramme d'Exécution — Politique : ${currentPolicy.toUpperCase()} · ${cores} cœur${cores>1?'s':''}</div>`;
+
+  const table = document.createElement('table');
+  table.className = 'gantt-table';
+
+  // Header row
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `<th style="text-align:right; padding-right:14px; color:var(--muted)">PID</th>`;
+  for (let t = 0; t < ticks; t++) {
+    headerRow.innerHTML += `<th>${t}</th>`;
+  }
+  headerRow.innerHTML += `<th style="padding-left:14px; color:var(--muted); font-size:0.55rem">TA&nbsp;/&nbsp;TT</th>`;
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Process rows
+  const tbody = document.createElement('tbody');
+  procs.forEach(proc => {
+    const tr = document.createElement('tr');
+    const ta = proc.firstRun >= 0 ? proc.firstRun : '-';
+    const tt = proc.finishTick >= 0 ? proc.finishTick : '-';
+    const tw = (proc.firstRun >= 0 ? proc.firstRun : 0);
+    tr.innerHTML = `<td class="row-label">${proc.pid}<span>prio ${proc.priority}</span></td>`;
+    proc.timeline.forEach((state, ti) => {
+      const instr = proc.instrLog[ti] || '';
+      const stateClass = {
+        RUNNING: 'cell-running', READY: 'cell-ready',
+        BLOCKED: 'cell-blocked', DONE: 'cell-done',
+      }[state] || 'cell-idle';
+      tr.innerHTML += `<td><div class="gantt-cell ${stateClass}"
+        onmouseenter="showTip(event,'t=${ti} · ${proc.pid} · ${state}${instr?' · '+instr:''}')"
+        onmouseleave="hideTip()"></div></td>`;
+    });
+    const ttStr = proc.finishTick >= 0 ? `${tw} / ${proc.finishTick}` : '—';
+    tr.innerHTML += `<td style="padding-left:14px; font-family:var(--mono); font-size:0.65rem; color:var(--muted)">${ttStr}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Resource rows
+  const allRes = new Set();
+  procs.forEach(p => p.instructions.forEach(i => { if (i.res) allRes.add(i.res); }));
+  if (allRes.size > 0) {
+    const sepRow = document.createElement('tr');
+    sepRow.innerHTML = `<td colspan="${ticks+2}" style="height:12px"></td>`;
+    tbody.appendChild(sepRow);
+
+    // Rebuild resource timeline from process logs
+    allRes.forEach(res => {
+      const resTr = document.createElement('tr');
+      resTr.innerHTML = `<td class="row-label" style="color:var(--purple)">${res}<span>ressource</span></td>`;
+      for (let t = 0; t < ticks; t++) {
+        // Find who holds this resource at tick t
+        const holder = procs.find(p => {
+          const state = p.timeline[t];
+          if (state === 'BLOCKED' && p.waitingFor === res) return false;
+          // Check if process holds resource at this tick (heuristic from instructions)
+          return false;
+        });
+        resTr.innerHTML += `<td><div class="gantt-cell cell-idle"></div></td>`;
+      }
+      resTr.innerHTML += `<td></td>`;
+      tbody.appendChild(resTr);
+    });
+  }
+
+  table.appendChild(tbody);
+  ganttWrap.appendChild(table);
+  out.appendChild(ganttWrap);
+
+  // ── Resource ownership timeline ──
+  buildResourceTimeline(out, procs, ticks);
+
+  // ── Stats ──
+  buildStats(out, procs, ticks);
+}
+
+function buildResourceTimeline(out, procs, ticks) {
+  // Rebuild resource state from simulation
+  const allRes = new Set();
+  procs.forEach(p => p.instructions.forEach(i => { if (i.res) allRes.add(i.res); }));
+  if (allRes.size === 0) return;
+
+  // Re-run resource tracking (lightweight)
+  const resTimeline = {};
+  allRes.forEach(r => { resTimeline[r] = new Array(ticks).fill(null); });
+
+  const resources = {};
+  const procsCopy = processDefs.map(d => ({
+    pid: d.pid, priority: d.priority,
+    instructions: parseInstructions(d.instructions),
+    pc: 0, state: 'READY', waitingFor: null,
+    arrivalOrder: processDefs.indexOf(d),
+  }));
+  const cores = parseInt(document.getElementById('coresRange').value);
+  let rrQ = [...procsCopy];
+
+  for (let t = 0; t < ticks; t++) {
+    procsCopy.filter(p => p.state === 'BLOCKED').forEach(p => {
+      if (!resources[p.waitingFor]) { p.state = 'READY'; if (!rrQ.includes(p)) rrQ.push(p); }
+    });
+    const ready = procsCopy.filter(p => p.state === 'READY');
+    let elected = [];
+    if (currentPolicy === 'rr') elected = rrQ.filter(p => p.state === 'READY').slice(0, cores);
+    else if (currentPolicy === 'priority') elected = ready.slice().sort((a,b)=>a.priority-b.priority).slice(0,cores);
+    else if (currentPolicy === 'sjf') elected = ready.slice().sort((a,b)=>(a.instructions.length-a.pc)-(b.instructions.length-b.pc)).slice(0,cores);
+    else elected = ready.slice().sort((a,b)=>a.arrivalOrder-b.arrivalOrder).slice(0,cores);
+
+    elected.forEach(proc => {
+      if (proc.pc >= proc.instructions.length) return;
+      const instr = proc.instructions[proc.pc];
+      if (instr.type === 'PRENDRE') {
+        if (!resources[instr.res]) { resources[instr.res] = proc.pid; proc.pc++; proc.state='READY'; }
+        else { proc.state='BLOCKED'; proc.waitingFor=instr.res; rrQ=rrQ.filter(p=>p!==proc); }
+      } else if (instr.type === 'POSER') {
+        if (resources[instr.res] === proc.pid) resources[instr.res] = null;
+        proc.pc++; proc.state='READY';
+      } else { proc.pc++; proc.state='READY'; }
+      if (proc.pc >= proc.instructions.length) { proc.state='DONE'; rrQ=rrQ.filter(p=>p!==proc); }
+    });
+    if (currentPolicy === 'rr') {
+      elected.filter(p=>p.state==='READY').forEach(p=>{ rrQ=rrQ.filter(q=>q!==p); rrQ.push(p); });
+    }
+    allRes.forEach(r => { resTimeline[r][t] = resources[r] || null; });
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'res-table';
+  wrap.innerHTML = `<div class="gantt-title">État des Ressources (Mutex)</div>`;
+  const tbl = document.createElement('table');
+  tbl.className = 'gantt-table';
+  const thead = document.createElement('thead');
+  let hr = '<tr><th style="text-align:right;padding-right:14px">Ressource</th>';
+  for (let t = 0; t < ticks; t++) hr += `<th>${t}</th>`;
+  hr += '<th></th></tr>';
+  thead.innerHTML = hr;
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+
+  const pidColors = {};
+  processDefs.forEach((p,i) => {
+    const cols = ['#3fb950','#f0b429','#58a6ff','#bc8cff','#ff7b72','#56d364'];
+    pidColors[p.pid] = cols[i % cols.length];
+  });
+
+  allRes.forEach(res => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="row-label" style="color:var(--purple)">${res}</td>`;
+    resTimeline[res].forEach((holder, t) => {
+      if (holder) {
+        const col = pidColors[holder] || 'var(--running)';
+        tr.innerHTML += `<td><div class="gantt-cell" style="background:${col};opacity:0.8"
+          onmouseenter="showTip(event,'t=${t} · ${res} tenu par ${holder}')"
+          onmouseleave="hideTip()"></div></td>`;
+      } else {
+        tr.innerHTML += `<td><div class="gantt-cell cell-idle"></div></td>`;
+      }
+    });
+    tr.innerHTML += '<td></td>';
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  wrap.appendChild(tbl);
+
+  // PID color legend
+  const legRow = document.createElement('div');
+  legRow.className = 'legend';
+  legRow.style.marginTop = '12px';
+  processDefs.forEach(p => {
+    const col = pidColors[p.pid] || 'white';
+    legRow.innerHTML += `<div class="legend-item">
+      <div class="legend-dot" style="background:${col};border-radius:3px"></div>${p.pid}</div>`;
+  });
+  wrap.appendChild(legRow);
+  out.appendChild(wrap);
+}
+
+function buildStats(out, procs, ticks) {
+  const statsTitle = document.createElement('div');
+  statsTitle.className = 'section-title';
+  statsTitle.style.marginBottom = '10px';
+  statsTitle.textContent = 'Métriques';
+  out.appendChild(statsTitle);
+
+  const grid = document.createElement('div');
+  grid.className = 'stats-grid';
+
+  procs.forEach(proc => {
+    const ta = proc.firstRun >= 0 ? proc.firstRun : 0;
+    const tt = proc.finishTick >= 0 ? proc.finishTick : ticks;
+    const waitCount = proc.timeline.filter(s => s === 'READY').length;
+    const runCount  = proc.timeline.filter(s => s === 'RUNNING').length;
+    const blockCount= proc.timeline.filter(s => s === 'BLOCKED').length;
+
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = `
+      <div class="label">Processus</div>
+      <div class="pid-tag">${proc.pid} · prio ${proc.priority}</div>
+      <div class="val">${proc.finishTick >= 0 ? proc.finishTick : '∞'} <small>ticks totaux</small></div>
+      <div style="margin-top:8px; font-size:0.65rem; font-family:var(--mono); color:var(--muted); line-height:2">
+        <span style="color:var(--running)">▐</span> Running : ${runCount}<br>
+        <span style="color:var(--ready)">▐</span> Prêt    : ${waitCount}<br>
+        <span style="color:var(--blocked)">▐</span> Bloqué  : ${blockCount}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Global stats
+  const finished = procs.filter(p => p.finishTick >= 0);
+  if (finished.length > 0) {
+    const makespan = Math.max(...finished.map(p => p.finishTick));
+    const avgTt = (finished.reduce((s, p) => s + p.finishTick, 0) / finished.length).toFixed(1);
+    const avgWait = (procs.reduce((s, p) => s + p.timeline.filter(st => st === 'READY').length, 0) / procs.length).toFixed(1);
+
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.style.borderColor = 'var(--accent)';
+    card.innerHTML = `
+      <div class="label">Bilan Global</div>
+      <div class="val">${makespan} <small>makespan</small></div>
+      <div style="margin-top:8px; font-size:0.65rem; font-family:var(--mono); color:var(--muted); line-height:2">
+        TT moyen : ${avgTt} ticks<br>
+        Attente moy. : ${avgWait} ticks<br>
+        Processus : ${finished.length}/${procs.length} finis
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+
+  out.appendChild(grid);
+}
+
+// ═══════════════════════════════════════
+//  TOOLTIP
+// ═══════════════════════════════════════
+function showTip(e, text) {
+  const t = document.getElementById('tooltip');
+  t.textContent = text;
+  t.style.display = 'block';
+  t.style.left = (e.clientX + 14) + 'px';
+  t.style.top  = (e.clientY - 10) + 'px';
+}
+function hideTip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+loadPreset('rr');
+</script>
+</body>
+</html>
