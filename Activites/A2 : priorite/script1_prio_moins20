@@ -1,0 +1,7 @@
+pid = 0
+priorité = -20
+prendre(noir)
+dessiner(noir,[9,11])
+dessiner(noir,[18,19])
+dessiner(noir,[26])
+poser(noir)

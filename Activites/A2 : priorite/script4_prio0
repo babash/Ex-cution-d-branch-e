@@ -1,0 +1,10 @@
+pid = 4
+priorité = 0
+prendre(rouge)
+dessiner(rouge,[47,46,45,44])
+dessiner(rouge,[23,20])
+poser(rouge)
+prendre(bleu)
+prendre(bleu)
+dessiner(bleu,[3])
+poser(bleu)
