@@ -1,9 +1,0 @@
-pid = 0
-prio = 0
-prendre(rouge)
-dessiner(rouge,[9,2]) 
-poser(rouge)
-prendre(bleu)
-dessiner(bleu,[33,26,44])
-dessiner(bleu,[53,62])
-poser(bleu)
