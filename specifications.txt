@@ -89,7 +89,7 @@ h1 { font-size: 8vh; text-transform: uppercase; border-left: 15px solid blue; pa
 
 ---
 
-### Activité 4 & 5 : Le Multicœur (Parallélisme)
+### Activité 4 & 5 (à venir) : Le Multicœur (Parallélisme)
 * **Déroulement :** 3 élèves au tableau. A4 : pas de conflit. A5 : compétition pour les feutres.
 
 > **Slide Analyse (Socio-constructiviste) :** "Est-ce que travailler à trois a divisé le temps par trois ? Qu'est-ce qui a créé de la frustration en A5 malgré les 3 processeurs ?"
