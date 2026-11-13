@@ -19,6 +19,8 @@ Système d'exploitation humain fait partie des [Ressources NSI et SNT](https://b
 3. **Les élèves exécutent leur fiche** : tu appelles un processus de la file des prêts. Au tableau, l'élève exécute **une seule ligne** (c'est le quantum), coche la case si l'action a réussi, puis retourne dans la file des prêts. Si `PRENDRE` échoue, rien n'est coché, et l'élève va dans la file des bloqués.
 4. **Tu fais le bilan** après chaque activité : la question de rétro-analyse du diaporama, puis la notion de cours.
 
+La durée de chaque activité sera précisée après un premier essai en classe (voir « Feuille de route »).
+
 Tu veux d'abord comprendre l'activité seul·e ? Le [guide de l'activité](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/guide.html) résume les règles, les activités et leurs débriefings.
 
 ## Ce que font les élèves
@@ -40,13 +42,12 @@ PID 0 · priorité 1 (haute) · quantum : 1 ligne par tour
 | 2. Les priorités | 6, de priorité 1 (haute) à 3 (basse) | L'ordonnanceur appelle toujours la priorité la plus haute | La famine, et le vieillissement pour l'éviter |
 | 3. L'interblocage | 4 | Des fiches qui gardent un feutre en attendant le suivant | L'interblocage et ses 4 conditions (Coffman) |
 
-Le diaporama et le guide prévoient deux activités de plus, sans fiches dans le dépôt : le multicœur, où l'ordonnanceur appelle 3 élèves en même temps au tableau.
+Deux activités de plus, sur le multicœur, sont à venir (voir « Feuille de route »).
 
 ## Pour quels usages
 
 | Usage | Comment |
 |---|---|
-| **Le multicœur** (activités 4 et 5) | 3 élèves au tableau en même temps : d'abord sans conflit, puis en compétition pour les feutres. Le bilan oppose parallélisme et concurrence. |
 | **D'autres variantes** | Le guide en propose trois : éloigner la zone de dessin, pour séparer processeur et mémoire (la latence) ; plusieurs élèves avec le même PID et des fiches différentes (les *threads*, ou fils d'exécution) ; faire passer d'abord l'élève qui a le moins de cases à cocher (*Shortest Job First*, le plus court d'abord). |
 | **Tes propres fiches** | Un générateur fabrique des fiches à imprimer à partir d'un fichier d'instructions (voir « Pour aller plus loin »). |
 | **Comparer les politiques** | Un simulateur d'ordonnancement, à ouvrir dans le navigateur, trace le chronogramme : tourniquet, priorités, plus court d'abord, premier arrivé, avec un ou plusieurs cœurs. |
@@ -63,7 +64,7 @@ Le diaporama et le guide prévoient deux activités de plus, sans fiches dans le
 
 | Document | Contenu |
 |---|---|
-| [Diaporama](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/diaporama.html) (`slide.html`) | À projeter : les objectifs, les rôles, le protocole, les 5 activités, leurs rétro-analyses et les notions de cours |
+| [Diaporama](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/diaporama.html) (`slide.html`) | À projeter : les objectifs, les rôles, le protocole, les 3 activités et les 2 à venir, leurs rétro-analyses et les notions de cours |
 | [Guide de l'activité](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/guide.html) (`specifications.txt`) | Les objectifs, le matériel, les règles, les activités et leurs débriefings, le lexique, les limites, les variantes |
 | Fiches processus : [activité 1](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/fiches-activite-1.pdf), [activité 2](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/fiches-activite-2.pdf), [activité 3](https://babash.github.io/Babash-NSI-SNT/nsi-terminale/fichiers/os-humain/fiches-activite-3.pdf) | Les PDF à imprimer, A4 à l'italienne ; leurs instructions sont dans `Activites/` |
 | [Grille](Grille/grille.png) | Le modèle de la grille de 64 cases numérotées |
@@ -77,9 +78,16 @@ python3 "A ranger/generateur_fiches.py" Activites/A3_mono_interblocage/script1 -
 
 Le fichier d'instructions donne, pour chaque fiche, `PID:` et `PRIORITE:` (1, 2 ou 3), puis une instruction par ligne ; `---` sépare deux fiches (exemple : `A ranger/exemple_instructions.txt`). La page produite s'imprime en PDF depuis le navigateur.
 
+## Feuille de route
+
+Le Système d'exploitation humain n'est pas encore fini, et il n'a jamais été essayé en classe.
+
+- **Les activités 4 et 5, sur le multicœur**, sont à venir : le diaporama et le guide en donnent déjà le principe (3 élèves au tableau en même temps, d'abord sans conflit, puis en compétition pour les feutres ; le bilan oppose parallélisme et concurrence), mais elles n'ont pas encore de fiches ;
+- **un premier essai en classe** précisera la durée de chaque activité.
+
 ## Contact
 
-Conçu par Babash - NSI Tani Malandi et Johanne Bakalara (enseignante de NSI à Bandrélé) pour les classes de NSI de terminale de l'académie de Mayotte.
+Conçu par Babash - NSI Tani Malandi et Johanne Bakalara (enseignante de NSI à Bandrélé) pour les classes de NSI de terminale de l'académie de Mayotte, avec l'aide de l'IA (au moins pour une part).
 Une question, une idée, un bug ? Les [issues GitHub](https://github.com/babash/Ex-cution-d-branch-e/issues) du dépôt. Toutes les ressources sont sur le site [Ressources NSI et SNT](https://babash.github.io/Babash-NSI-SNT/).
 
 ## Licence
